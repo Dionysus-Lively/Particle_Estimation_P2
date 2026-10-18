@@ -1,0 +1,65 @@
+[0.014s] Invoking command in '/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/luke-wei/ros2_ws/install/wall_follow_pkg:/home/luke-wei/ros2_ws/install/sample_node_architectures:/home/luke-wei/ros2_ws/install/person_follow_pkg:/home/luke-wei/ros2_ws/install/neato_soccer:/home/luke-wei/ros2_ws/install/neato_node2:/home/luke-wei/ros2_ws/install/in_class_day04_solutions:/home/luke-wei/ros2_ws/install/in_class_day03_solutions:/home/luke-wei/ros2_ws/install/multi_neato:/home/luke-wei/ros2_ws/install/in_class_day02_solutions:/home/luke-wei/ros2_ws/install/in_class_day02:/home/luke-wei/ros2_ws/install/driving_square:/home/luke-wei/ros2_ws/install/draw_square_with_estop:/home/luke-wei/ros2_ws/install/collision_avoidance_pkg:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/luke-wei/ros2_ws/src/Particle_Estimation_P2 -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/install/Particle_Estimation_P2
+[0.112s] -- The C compiler identification is GNU 13.3.0
+[0.196s] -- The CXX compiler identification is GNU 13.3.0
+[0.223s] -- Detecting C compiler ABI info
+[0.371s] -- Detecting C compiler ABI info - done
+[0.390s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.391s] -- Detecting C compile features
+[0.391s] -- Detecting C compile features - done
+[0.407s] -- Detecting CXX compiler ABI info
+[0.583s] -- Detecting CXX compiler ABI info - done
+[0.605s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.605s] -- Detecting CXX compile features
+[0.606s] -- Detecting CXX compile features - done
+[0.611s] -- Found ament_cmake: 2.5.6 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[0.777s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[0.833s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.885s] -- Found nav_msgs: 5.3.8 (/opt/ros/jazzy/share/nav_msgs/cmake)
+[0.919s] -- Found rosidl_generator_c: 4.6.9 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)
+[0.928s] -- Found rosidl_generator_cpp: 4.6.9 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)
+[0.939s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.961s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.071s] -- Found sensor_msgs: 5.3.8 (/opt/ros/jazzy/share/sensor_msgs/cmake)
+[1.101s] -- Found ament_lint_auto: 0.17.5 (/opt/ros/jazzy/share/ament_lint_auto/cmake)
+[1.236s] WARNING: Package name "Particle_Estimation_P2" does not follow the naming conventions. It should start with a lower case letter and only contain lower case letters, digits, underscores, and dashes.
+[1.375s] -- Added test 'copyright' to check source files copyright and LICENSE
+[1.393s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[1.393s] -- Configured cppcheck include dirs: 
+[1.393s] -- Configured cppcheck exclude dirs and/or files: 
+[1.410s] -- Added test 'cpplint' to check C / C++ code against the Google style
+[1.410s] -- Configured cpplint exclude dirs and/or files: 
+[1.415s] -- Added test 'flake8' to check Python code syntax and style conventions
+[1.415s] -- Configured 'flake8' exclude dirs and/or files: 
+[1.420s] -- Added test 'lint_cmake' to check CMake code style
+[1.424s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[1.435s] -- Added test 'uncrustify' to check C / C++ code style
+[1.435s] -- Configured uncrustify additional arguments: 
+[1.437s] -- Added test 'xmllint' to check XML markup files
+[1.440s] -- Configuring done (1.4s)
+[1.444s] -- Generating done (0.0s)
+[1.446s] -- Build files have been written to: /home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2
+[1.457s] Invoked command in '/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/luke-wei/ros2_ws/install/wall_follow_pkg:/home/luke-wei/ros2_ws/install/sample_node_architectures:/home/luke-wei/ros2_ws/install/person_follow_pkg:/home/luke-wei/ros2_ws/install/neato_soccer:/home/luke-wei/ros2_ws/install/neato_node2:/home/luke-wei/ros2_ws/install/in_class_day04_solutions:/home/luke-wei/ros2_ws/install/in_class_day03_solutions:/home/luke-wei/ros2_ws/install/multi_neato:/home/luke-wei/ros2_ws/install/in_class_day02_solutions:/home/luke-wei/ros2_ws/install/in_class_day02:/home/luke-wei/ros2_ws/install/driving_square:/home/luke-wei/ros2_ws/install/draw_square_with_estop:/home/luke-wei/ros2_ws/install/collision_avoidance_pkg:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/luke-wei/ros2_ws/src/Particle_Estimation_P2 -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/install/Particle_Estimation_P2
+[1.460s] Invoking command in '/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/luke-wei/ros2_ws/install/wall_follow_pkg:/home/luke-wei/ros2_ws/install/sample_node_architectures:/home/luke-wei/ros2_ws/install/person_follow_pkg:/home/luke-wei/ros2_ws/install/neato_soccer:/home/luke-wei/ros2_ws/install/neato_node2:/home/luke-wei/ros2_ws/install/in_class_day04_solutions:/home/luke-wei/ros2_ws/install/in_class_day03_solutions:/home/luke-wei/ros2_ws/install/multi_neato:/home/luke-wei/ros2_ws/install/in_class_day02_solutions:/home/luke-wei/ros2_ws/install/in_class_day02:/home/luke-wei/ros2_ws/install/driving_square:/home/luke-wei/ros2_ws/install/draw_square_with_estop:/home/luke-wei/ros2_ws/install/collision_avoidance_pkg:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2 -- -j16 -l16
+[1.566s] Built target ament_cmake_python_symlink_robot_localization
+[1.731s] running egg_info
+[1.732s] creating robot_localization.egg-info
+[1.740s] writing robot_localization.egg-info/PKG-INFO
+[1.740s] writing dependency_links to robot_localization.egg-info/dependency_links.txt
+[1.740s] writing top-level names to robot_localization.egg-info/top_level.txt
+[1.740s] writing manifest file 'robot_localization.egg-info/SOURCES.txt'
+[1.764s] reading manifest file 'robot_localization.egg-info/SOURCES.txt'
+[1.765s] writing manifest file 'robot_localization.egg-info/SOURCES.txt'
+[1.793s] Built target ament_cmake_python_build_robot_localization_egg
+[1.813s] Invoked command in '/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/luke-wei/ros2_ws/install/wall_follow_pkg:/home/luke-wei/ros2_ws/install/sample_node_architectures:/home/luke-wei/ros2_ws/install/person_follow_pkg:/home/luke-wei/ros2_ws/install/neato_soccer:/home/luke-wei/ros2_ws/install/neato_node2:/home/luke-wei/ros2_ws/install/in_class_day04_solutions:/home/luke-wei/ros2_ws/install/in_class_day03_solutions:/home/luke-wei/ros2_ws/install/multi_neato:/home/luke-wei/ros2_ws/install/in_class_day02_solutions:/home/luke-wei/ros2_ws/install/in_class_day02:/home/luke-wei/ros2_ws/install/driving_square:/home/luke-wei/ros2_ws/install/draw_square_with_estop:/home/luke-wei/ros2_ws/install/collision_avoidance_pkg:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2 -- -j16 -l16
+[1.833s] Invoking command in '/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/luke-wei/ros2_ws/install/wall_follow_pkg:/home/luke-wei/ros2_ws/install/sample_node_architectures:/home/luke-wei/ros2_ws/install/person_follow_pkg:/home/luke-wei/ros2_ws/install/neato_soccer:/home/luke-wei/ros2_ws/install/neato_node2:/home/luke-wei/ros2_ws/install/in_class_day04_solutions:/home/luke-wei/ros2_ws/install/in_class_day03_solutions:/home/luke-wei/ros2_ws/install/multi_neato:/home/luke-wei/ros2_ws/install/in_class_day02_solutions:/home/luke-wei/ros2_ws/install/in_class_day02:/home/luke-wei/ros2_ws/install/driving_square:/home/luke-wei/ros2_ws/install/draw_square_with_estop:/home/luke-wei/ros2_ws/install/collision_avoidance_pkg:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2
+[1.847s] -- Install configuration: ""
+[1.848s] -- Execute custom install script
+[1.849s] [31mCMake Error at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:209 (message):
+[1.849s]   ament_cmake_symlink_install_programs() can't find
+[1.849s]   '/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/Particle_Estimation_P2/pf.py'
+[1.849s] Call Stack (most recent call first):
+[1.849s]   ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:319 (ament_cmake_symlink_install_programs)
+[1.849s]   cmake_install.cmake:46 (include)
+[1.849s] 
+[1.849s] [0m
+[1.851s] Invoked command in '/home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2' returned '1': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/luke-wei/ros2_ws/install/wall_follow_pkg:/home/luke-wei/ros2_ws/install/sample_node_architectures:/home/luke-wei/ros2_ws/install/person_follow_pkg:/home/luke-wei/ros2_ws/install/neato_soccer:/home/luke-wei/ros2_ws/install/neato_node2:/home/luke-wei/ros2_ws/install/in_class_day04_solutions:/home/luke-wei/ros2_ws/install/in_class_day03_solutions:/home/luke-wei/ros2_ws/install/multi_neato:/home/luke-wei/ros2_ws/install/in_class_day02_solutions:/home/luke-wei/ros2_ws/install/in_class_day02:/home/luke-wei/ros2_ws/install/driving_square:/home/luke-wei/ros2_ws/install/draw_square_with_estop:/home/luke-wei/ros2_ws/install/collision_avoidance_pkg:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/luke-wei/ros2_ws/src/Particle_Estimation_P2/build/Particle_Estimation_P2

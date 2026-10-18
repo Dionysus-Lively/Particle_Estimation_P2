@@ -1,0 +1,4 @@
+source;share/Particle_Estimation_P2/local_setup.bash
+source;share/Particle_Estimation_P2/local_setup.dsv
+source;share/Particle_Estimation_P2/local_setup.sh
+source;share/Particle_Estimation_P2/local_setup.zsh

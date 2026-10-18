@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(robot_localization)
+project(particle_estimation_p2)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)

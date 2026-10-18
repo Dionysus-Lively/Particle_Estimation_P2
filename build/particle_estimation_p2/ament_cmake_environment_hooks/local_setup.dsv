@@ -1,0 +1,3 @@
+source;share/particle_estimation_p2/environment/ament_prefix_path.sh
+source;share/particle_estimation_p2/environment/path.sh
+source;share/particle_estimation_p2/environment/pythonpath.sh
