@@ -258,6 +258,7 @@ class ParticleFilter(Node):
         rng = np.random.default_rng()
 
         # Normalize the weights to ensure they sum to 1
+        particle_weights = np.array([particle.w for particle in self.particle_cloud])
         particle_weights /= np.sum(particle_weights)
 
         # Resample particles based on normalized weights
@@ -423,7 +424,7 @@ class ParticleFilter(Node):
 
         x_positions = rng.uniform(low=xy_theta[0]-particle_cloud_radius, high=xy_theta[0]+particle_cloud_radius, size=self.n_particles)
         y_positions = rng.uniform(low=xy_theta[1]-particle_cloud_radius, high=xy_theta[1]+particle_cloud_radius, size=self.n_particles)
-        headings = rng.uniform(low=0, high=0, size=self.n_particles)
+        headings = rng.uniform(low=xy_theta[2]-np.pi/4, high=xy_theta[2]+np.pi/4, size=self.n_particles)
         
         for i in range(self.n_particles):
             self.particle_cloud.append(Particle(x=x_positions[i], y=y_positions[i], theta=headings[i], w=1.0/self.n_particles))
