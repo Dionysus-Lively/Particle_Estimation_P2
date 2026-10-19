@@ -245,14 +245,62 @@ class ParticleFilter(Node):
 
 
    def resample_particles(self):
-       """ Resample the particles according to the new particle weights.
-           The weights stored with each particle should define the probability that a particular
-           particle is selected in the resampling step.  You may want to make use of the given helper
-           function draw_random_sample in helper_functions.py.
-       """
-       # make sure the distribution is normalized
-       self.normalize_particles()
-       # TODO: fill out the rest of the implementation
+        """ Resample the particles according to the new particle weights.
+            The weights stored with each particle should define the probability that a particular
+            particle is selected in the resampling step.  You may want to make use of the given helper
+            function draw_random_sample in helper_functions.py.
+        """
+        # make sure the distribution is normalized
+        self.normalize_particles()
+        # TODO: unit test this function to make sure it is working correctly
+
+        # Initialize the random number generator
+        rng = np.random.default_rng()
+
+        # num_rand_particles
+        particle_weights = self.particle_cloud[3,:]  # Assign weights which are stored in the 4th row of the particle cloud
+
+        # Normalize the weights to ensure they sum to 1
+        particle_weights /= np.sum(particle_weights)
+
+        # Resample particles based on normalized weights
+        resampled_indices = np.random.choice(len(self.particle_cloud), size=len(self.particle_cloud)-15, p=particle_weights) # resamples 285 particles
+        resampled_particles = [self.particle_cloud[i] for i in resampled_indices] # extract samples particle objects
+
+        # Define noise ranges
+        pos_range = .2 # 20 cm radius around each particle
+        head_range = np.pi / 8 # 22.5 degree range in radians
+
+        # Resampled positions and headings for weighted particles with noise
+        for i in range(len(resampled_particles)):
+            resampled_particles[i].x += rng.uniform(-pos_range, pos_range) # Inject noise to x-coordinate
+            resampled_particles[i].y += rng.uniform(-pos_range, pos_range) # Inject noise to y-coordinate
+            resampled_particles[i].theta += rng.uniform(-head_range, head_range) # Inject noise to heading
+        
+        # Make 15 random particles
+        n_rand_particles = 15
+        rand_location_range = 2 # include random particles within 2 meters of the last known position
+        rand_heading_range = np.pi / 4 # 45 degree range in radians
+
+        last_pose = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose) # last know position
+
+        rand_particles = [Particle(x=last_pose[0], y=last_pose[1], theta=last_pose[2], w=1.0/self.n_particles) for _ in range(n_rand_particles)] # create 15 particle object of the last known position
+
+        # Resampled positions and headings for random particles
+        rand_x_positions = rng.uniform(low=-rand_location_range, high=rand_location_range, size=n_rand_particles)
+        rand_y_positions = rng.uniform(low=-rand_location_range, high=rand_location_range, size=n_rand_particles)
+        headings = rng.uniform(low=-rand_heading_range, high=rand_heading_range, size=n_rand_particles)
+        
+        self.particle_cloud = []  # Clear the current particle cloud
+
+        # Add resamples particles
+        for i in range(self.n_particles - n_rand_particles):
+            self.particle_cloud.append(Particle(x=resampled_particles[i].x, y=resampled_particles[i].y, theta=resampled_particles[i].theta, w=1.0/self.n_particles))
+
+        for i in range(n_rand_particles):
+            self.particle_cloud.append(Particle(x=rand_particles[i].x+rand_x_positions[i], y=rand_particles[i].y+rand_y_positions[i], theta=rand_particles[i].theta+headings[i], w=1.0/self.n_particles))
+
+        return resampled_particles
 
 
    def ray_cast(self, ox, oy, angles, max_range):
@@ -360,19 +408,32 @@ class ParticleFilter(Node):
 
 
    def initialize_particle_cloud(self, timestamp, xy_theta=None):
-       """ Initialize the particle cloud.
-           Arguments
-           xy_theta: a triple consisting of the mean x, y, and theta (yaw) to initialize the
-                     particle cloud around.  If this input is omitted, the odometry will be used """
-       if xy_theta is None:
-           xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose)
-       self.particle_cloud = []
-       # TODO create particles
+        """ Initialize the particle cloud.
+            Arguments
+            xy_theta: a triple consisting of the mean x, y, and theta (yaw) to initialize the
+                        particle cloud around.  If this input is omitted, the odometry will be used """
+        if xy_theta is None:
+            xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose)
+        self.particle_cloud = []
+
+        # Create number generator
+        rng = np.random.default_rng()
 
 
-       self.normalize_particles()
-       self.update_robot_pose()
+        particle_cloud_radius = 1
 
+        x_positions = rng.uniform(low=xy_theta[0]-particle_cloud_radius, high=xy_theta[0]+particle_cloud_radius, size=self.n_particles)
+        y_positions = rng.uniform(low=xy_theta[1]-particle_cloud_radius, high=xy_theta[1]+particle_cloud_radius, size=self.n_particles)
+        headings = rng.uniform(low=0, high=0, size=self.n_particles)
+        for i in range(self.n_particles):
+            self.particle_cloud.append(Particle(x=x_positions[i], y=y_positions[i], theta=headings[i], w=1.0/self.n_particles))
+
+        #sample from particles around xy_theta with some noise
+        
+        self.particle_cloud[0,:] = x_positions
+        self.particle_cloud[1,:] = y_positions
+        self.particle_cloud[2,:] = headings
+        self._particle_cloud[3,:] = 1.0/self.n_particles # initally equal weights for all particles
 
    def normalize_particles(self):
        """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
