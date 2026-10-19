@@ -257,9 +257,6 @@ class ParticleFilter(Node):
         # Initialize the random number generator
         rng = np.random.default_rng()
 
-        # num_rand_particles
-        #particle_weights = self.particle_cloud[3,:]  # Assign weights which are stored in the 4th row of the particle cloud
-        particle_weights = np.array([p.w for p in self.particle_cloud])
         # Normalize the weights to ensure they sum to 1
         particle_weights /= np.sum(particle_weights)
 
@@ -272,10 +269,14 @@ class ParticleFilter(Node):
         head_range = np.pi / 8 # 22.5 degree range in radians
 
         # Resampled positions and headings for weighted particles with noise
-        for i in range(len(resampled_particles)):
-            resampled_particles[i].x += rng.uniform(-pos_range, pos_range) # Inject noise to x-coordinate
-            resampled_particles[i].y += rng.uniform(-pos_range, pos_range) # Inject noise to y-coordinate
-            resampled_particles[i].theta += rng.uniform(-head_range, head_range) # Inject noise to heading
+        temp_particles = [
+            Particle(x=resampled_particles[i].x + rng.uniform(-pos_range, pos_range), # Inject noise to x-coordinate
+                     y=resampled_particles[i].y + rng.uniform(-pos_range, pos_range), # Inject noise to y-coordinate
+                     theta=resampled_particles[i].theta + rng.uniform(-head_range, head_range), # Inject noise to heading
+                     w=1.0/self.n_particles) 
+            for i in range(len(resampled_particles))]
+
+        resampled_particles = temp_particles 
         
         # Make 15 random particles
         n_rand_particles = 15
@@ -299,8 +300,6 @@ class ParticleFilter(Node):
 
         for i in range(n_rand_particles):
             self.particle_cloud.append(Particle(x=rand_particles[i].x+rand_x_positions[i], y=rand_particles[i].y+rand_y_positions[i], theta=rand_particles[i].theta+headings[i], w=1.0/self.n_particles))
-
-        return resampled_particles
 
 
    def ray_cast(self, ox, oy, angles, max_range):
@@ -424,16 +423,11 @@ class ParticleFilter(Node):
 
         x_positions = rng.uniform(low=xy_theta[0]-particle_cloud_radius, high=xy_theta[0]+particle_cloud_radius, size=self.n_particles)
         y_positions = rng.uniform(low=xy_theta[1]-particle_cloud_radius, high=xy_theta[1]+particle_cloud_radius, size=self.n_particles)
-        headings = rng.uniform(low=xy_theta[0]-np.pi/4, high=xy_theta[0]+np.pi/4, size=self.n_particles)
+        headings = rng.uniform(low=0, high=0, size=self.n_particles)
+        
         for i in range(self.n_particles):
             self.particle_cloud.append(Particle(x=x_positions[i], y=y_positions[i], theta=headings[i], w=1.0/self.n_particles))
-
-        #sample from particles around xy_theta with some noise
-        
-        #self.particle_cloud[0,:] = x_positions
-        #self.particle_cloud[1,:] = y_positions
-        #self.particle_cloud[2,:] = headings
-        #self._particle_cloud[3,:] = 1.0/self.n_particles # initally equal weights for all particles
+    
 
    def normalize_particles(self):
        """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
