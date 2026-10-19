@@ -78,7 +78,7 @@ class ParticleFilter(Node):
    """
    def __init__(self):
        super().__init__('pf')
-       self.base_frame = "base_footprint"   # the frame of the robot base
+       self.base_frame = "base_link"   # the frame of the robot base
        self.map_frame = "map"          # the name of the map coordinate frame
        self.odom_frame = "odom"        # the name of the odometry coordinate frame
        self.scan_topic = "scan"        # the topic where we will get laser scans from
@@ -258,8 +258,8 @@ class ParticleFilter(Node):
         rng = np.random.default_rng()
 
         # num_rand_particles
-        particle_weights = self.particle_cloud[3,:]  # Assign weights which are stored in the 4th row of the particle cloud
-
+        #particle_weights = self.particle_cloud[3,:]  # Assign weights which are stored in the 4th row of the particle cloud
+        particle_weights = np.array([p.w for p in self.particle_cloud])
         # Normalize the weights to ensure they sum to 1
         particle_weights /= np.sum(particle_weights)
 
@@ -424,21 +424,24 @@ class ParticleFilter(Node):
 
         x_positions = rng.uniform(low=xy_theta[0]-particle_cloud_radius, high=xy_theta[0]+particle_cloud_radius, size=self.n_particles)
         y_positions = rng.uniform(low=xy_theta[1]-particle_cloud_radius, high=xy_theta[1]+particle_cloud_radius, size=self.n_particles)
-        headings = rng.uniform(low=0, high=0, size=self.n_particles)
+        headings = rng.uniform(low=xy_theta[0]-np.pi/4, high=xy_theta[0]+np.pi/4, size=self.n_particles)
         for i in range(self.n_particles):
             self.particle_cloud.append(Particle(x=x_positions[i], y=y_positions[i], theta=headings[i], w=1.0/self.n_particles))
 
         #sample from particles around xy_theta with some noise
         
-        self.particle_cloud[0,:] = x_positions
-        self.particle_cloud[1,:] = y_positions
-        self.particle_cloud[2,:] = headings
-        self._particle_cloud[3,:] = 1.0/self.n_particles # initally equal weights for all particles
+        #self.particle_cloud[0,:] = x_positions
+        #self.particle_cloud[1,:] = y_positions
+        #self.particle_cloud[2,:] = headings
+        #self._particle_cloud[3,:] = 1.0/self.n_particles # initally equal weights for all particles
 
    def normalize_particles(self):
        """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
        # TODO: implement this
-       pass
+       total = sum(p.w for p in self.particle_cloud)
+       if total > 0:
+           for p in self.particle_cloud:
+               p.w /=total
 
 
    def publish_particles(self, timestamp):

@@ -35,7 +35,7 @@ def generate_launch_description():
             parameters=[{"yaml_filename": LaunchConfiguration('map_yaml')}],
             output='screen'
         ),
-        Node(package='robot_localization',
+        Node(package='particle_estimation_p2',
              executable='pf.py',
              name='my_pf',
              parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}],
