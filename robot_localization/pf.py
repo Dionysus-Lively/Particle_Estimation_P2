@@ -246,14 +246,15 @@ class ParticleFilter(Node):
        angle = -math.sin(old_th) * delta[0] + math.cos(old_th) * delta[1]
        dth  = math.atan2(math.sin(delta[2]), math.cos(delta[2]))   # wrap to [-pi, pi]
 
-
+       rng = np.random.default_rng()
        for p in self.particle_cloud:
-           # small noise so particles spread out like real odometry error
+           f = fwd   + rng.normal(0, 0.02 + 0.1 * abs(fwd))
+           l = angle + rng.normal(0, 0.02 + 0.1 * abs(angle))
+           t = dth   + rng.normal(0, 0.02 + 0.1 * abs(dth))
 
-           p.x += fwd * math.cos(p.theta) - angle * math.sin(p.theta)
-           p.y += fwd * math.sin(p.theta) + angle * math.cos(p.theta)
-           p.theta += dth
-       
+           p.x += f * math.cos(p.theta) - l * math.sin(p.theta)
+           p.y += f * math.sin(p.theta) + l * math.cos(p.theta)
+           p.theta += t
 
 
    def resample_particles(self):
@@ -273,14 +274,14 @@ class ParticleFilter(Node):
         particle_weights = np.array([particle.w for particle in self.particle_cloud])
         particle_weights /= np.sum(particle_weights)
 
-        n_rand_particles = 150
+        n_rand_particles = 30
 
         # Resample particles based on normalized weights
         resampled_indices = np.random.choice(len(self.particle_cloud), size=len(self.particle_cloud)-n_rand_particles, p=particle_weights) # resamples 285 particles
         resampled_particles = [self.particle_cloud[i] for i in resampled_indices] # extract sampled particle objects
 
         # Define noise ranges
-        pos_range = .6 # 20 cm radius around each particle
+        pos_range = .5 # 20 cm radius around each particle
         head_range = np.pi / 8 # 22.5 degree range in radians
 
         # Resampled positions and headings for weighted particles with noise
@@ -321,9 +322,9 @@ class ParticleFilter(Node):
            ox, oy, angles: 1D arrays, one entry per ray (map frame).
            Returns the expected range for each ray, capped at max_range. """
        res = self.occupancy_field.map.info.resolution
-       hit_thresh = 0.5 * res
+       hit_thresh = 1.0 * res
        min_step = 0.5 * res
-       max_steps = 60
+       max_steps = 150
 
 
        n = len(ox)
@@ -342,6 +343,7 @@ class ParticleFilter(Node):
 
            off_map = np.isnan(d)                  # ray left the map: no hit
            hit = ~off_map & (d < hit_thresh)      # ray reached a wall
+           dist[active[hit]] += d[hit]  
            dist[active[off_map]] = max_range
 
 
@@ -372,7 +374,7 @@ class ParticleFilter(Node):
        theta = np.asarray(theta, dtype=float)
        max_range = 5.0          # cap; beyond this the map is less reliable
        beam_step = 10           # use every 10th beam for speed
-       noise = 0.15             # expected sensor noise (m); tune this
+       noise = 0.3           # expected sensor noise (m); tune this
 
 
        r, theta = r[::beam_step], theta[::beam_step]
@@ -404,7 +406,7 @@ class ParticleFilter(Node):
 
 
        # combine beams in log space so the product doesn't underflow to 0
-       log_w = np.sum(np.log(p_beam), axis=1)
+       log_w = np.sum(np.log(p_beam), axis=1)/3.0
        w = np.exp(log_w - log_w.max())
 
 
@@ -467,7 +469,172 @@ class ParticleFilter(Node):
        # self.scan_to_process is set to None in the run_loop
        if self.scan_to_process is None:
            self.scan_to_process = msg
+import unittest
+from unittest import mock
 
+
+class _FakeMapInfo:
+    resolution = 0.05
+
+class _FakeMap:
+    info = _FakeMapInfo()
+
+class _FakeField:
+    """ Wall along x = 2. Map spans [-10, 10] in x and y; outside returns nan. """
+    map = _FakeMap()
+    def get_closest_obstacle_distance(self, x, y):
+        x, y = np.asarray(x, float), np.asarray(y, float)
+        d = np.abs(2.0 - x)
+        d[(np.abs(x) > 10) | (np.abs(y) > 10)] = np.nan
+        return d
+
+class _FakeTF:
+    def convert_pose_to_xy_and_theta(self, pose):
+        q = pose.orientation
+        yaw = math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y ** 2 + q.z ** 2))
+        return [pose.position.x, pose.position.y, yaw]
+    def fix_map_to_odom_transform(self, robot_pose, odom_pose):
+        pass
+
+class _ZeroNoiseRng:
+    def normal(self, loc, scale):
+        return 0.0
+
+
+def _make_pf(n=600):
+    """ A ParticleFilter with no ROS node, thread, or timers behind it. """
+    pf = ParticleFilter.__new__(ParticleFilter)
+    pf.n_particles = n
+    pf.particle_cloud = []
+    pf.d_thresh = 0.2
+    pf.a_thresh = math.pi / 6
+    pf.occupancy_field = _FakeField()
+    pf.transform_helper = _FakeTF()
+    pf.odom_pose = Particle().as_pose()
+    pf.current_odom_xy_theta = []
+    return pf
+
+
+class TestParticleFilter(unittest.TestCase):
+
+    # ---------- normalize_particles ----------
+    def test_normalize_sums_to_one(self):
+        pf = _make_pf()
+        pf.particle_cloud = [Particle(w=w) for w in (1.0, 2.0, 7.0)]
+        pf.normalize_particles()
+        self.assertAlmostEqual(sum(p.w for p in pf.particle_cloud), 1.0)
+        self.assertAlmostEqual(pf.particle_cloud[2].w, 0.7)
+
+    def test_normalize_all_zero_does_not_crash(self):
+        pf = _make_pf()
+        pf.particle_cloud = [Particle(w=0.0) for _ in range(5)]
+        pf.normalize_particles()
+        self.assertTrue(all(p.w == 0.0 for p in pf.particle_cloud))
+
+    # ---------- update_robot_pose ----------
+    def test_robot_pose_is_weighted_mean(self):
+        pf = _make_pf()
+        pf.particle_cloud = [Particle(0, 0, 0, w=1), Particle(4, 2, 0, w=3)]
+        pf.update_robot_pose()
+        x, y, th = pf.transform_helper.convert_pose_to_xy_and_theta(pf.robot_pose)
+        self.assertAlmostEqual(x, 3.0)
+        self.assertAlmostEqual(y, 1.5)
+
+    def test_robot_pose_heading_wraps_around_pi(self):
+        pf = _make_pf()
+        a = math.radians(179)
+        pf.particle_cloud = [Particle(theta=a), Particle(theta=-a)]
+        pf.update_robot_pose()
+        th = pf.transform_helper.convert_pose_to_xy_and_theta(pf.robot_pose)[2]
+        self.assertAlmostEqual(abs(th), math.pi, places=5)   # not 0
+
+    # ---------- moved_far_enough_to_update ----------
+    def test_moved_far_enough(self):
+        pf = _make_pf()
+        pf.current_odom_xy_theta = [0.0, 0.0, 0.0]
+        self.assertFalse(pf.moved_far_enough_to_update([0.1, 0.1, 0.1]))
+        self.assertTrue(pf.moved_far_enough_to_update([0.3, 0.0, 0.0]))
+        self.assertTrue(pf.moved_far_enough_to_update([0.0, -0.3, 0.0]))
+        self.assertTrue(pf.moved_far_enough_to_update([0.0, 0.0, math.pi / 4]))
+
+    # ---------- update_particles_with_odom ----------
+    def test_odom_forward_motion_follows_each_particles_heading(self):
+        pf = _make_pf()
+        # robot faces +y in odom and drives 1 m forward
+        pf.current_odom_xy_theta = [0.0, 0.0, math.pi / 2]
+        pf.odom_pose = Particle(0, 1, math.pi / 2).as_pose()
+        pf.particle_cloud = [Particle(0, 0, 0), Particle(5, 5, math.pi)]
+        with mock.patch.object(np.random, "default_rng", return_value=_ZeroNoiseRng()):
+            pf.update_particles_with_odom()
+        a, b = pf.particle_cloud
+        self.assertAlmostEqual(a.x, 1.0); self.assertAlmostEqual(a.y, 0.0)
+        self.assertAlmostEqual(b.x, 4.0); self.assertAlmostEqual(b.y, 5.0)
+
+    def test_odom_rotation_is_wrapped(self):
+        pf = _make_pf()
+        # 3.0 -> -3.0 rad is a small +0.28 rad turn, not a -6 rad spin
+        pf.current_odom_xy_theta = [0.0, 0.0, 3.0]
+        pf.odom_pose = Particle(0, 0, -3.0).as_pose()
+        pf.particle_cloud = [Particle(0, 0, 0)]
+        with mock.patch.object(np.random, "default_rng", return_value=_ZeroNoiseRng()):
+            pf.update_particles_with_odom()
+        self.assertAlmostEqual(pf.particle_cloud[0].theta, 2 * math.pi - 6.0, places=5)
+
+    # ---------- ray_cast ----------
+    def test_ray_cast_known_distances(self):
+        pf = _make_pf()
+        ox = np.array([0.0, 0.0, 0.0, 0.0])
+        oy = np.array([0.0, 0.0, 0.0, 9.9])
+        angles = np.array([0.0, math.pi / 3, math.pi, math.pi / 2])
+        d = pf.ray_cast(ox, oy, angles, max_range=5.0)
+        self.assertAlmostEqual(d[0], 2.0, delta=0.1)   # straight at the wall
+        self.assertAlmostEqual(d[1], 4.0, delta=0.15)  # 60 deg: 2 / cos(60)
+        self.assertEqual(d[2], 5.0)                     # facing away: capped
+        self.assertEqual(d[3], 5.0)                     # leaves the map: capped
+
+    # ---------- update_particles_with_laser ----------
+    def test_laser_prefers_true_pose(self):
+        pf = _make_pf()
+        theta = np.linspace(-0.6, 0.6, 100)
+        r = 2.0 / np.cos(theta)                         # scan from (0, 0, 0)
+        pf.particle_cloud = [Particle(0, 0, 0), Particle(1, 0, 0), Particle(0, 0, 0.5)]
+        pf.update_particles_with_laser(r, theta)
+        w = [p.w for p in pf.particle_cloud]
+        self.assertAlmostEqual(w[0], 1.0)
+        self.assertGreater(w[0], w[1])
+        self.assertGreater(w[0], w[2])
+
+    def test_laser_ignores_scan_with_no_valid_beams(self):
+        pf = _make_pf()
+        pf.particle_cloud = [Particle(w=0.25) for _ in range(4)]
+        theta = np.linspace(-1, 1, 50)
+        pf.update_particles_with_laser(np.full(50, np.inf), theta)
+        self.assertTrue(all(p.w == 0.25 for p in pf.particle_cloud))
+
+    # ---------- initialize_particle_cloud ----------
+    def test_initialize_cloud(self):
+        pf = _make_pf(n=600)
+        pf.initialize_particle_cloud(None, [3.0, -2.0, 0.5])
+        self.assertEqual(len(pf.particle_cloud), 600)
+        for p in pf.particle_cloud:
+            self.assertTrue(2.0 <= p.x <= 4.0)
+            self.assertTrue(-3.0 <= p.y <= -1.0)
+            self.assertTrue(0.5 - math.pi / 4 <= p.theta <= 0.5 + math.pi / 4)
+            self.assertAlmostEqual(p.w, 1 / 600)
+
+    # ---------- resample_particles ----------
+    def test_resample_collapses_onto_heavy_particle(self):
+        np.random.seed(0)
+        pf = _make_pf(n=100)
+        pf.particle_cloud = [Particle(-5, -5, 0, w=0.0) for _ in range(99)]
+        pf.particle_cloud.append(Particle(5, 5, 0, w=1.0))
+        pf.robot_pose = Particle(5, 5, 0).as_pose()
+        pf.resample_particles()
+        self.assertEqual(len(pf.particle_cloud), 100)
+        for p in pf.particle_cloud:
+            self.assertAlmostEqual(p.w, 1 / 100)
+            self.assertLessEqual(abs(p.x - 5), 0.5 + 1e-9)
+            self.assertLessEqual(abs(p.y - 5), 0.5 + 1e-9)
 
 def main(args=None):
    rclpy.init()
