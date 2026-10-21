@@ -294,10 +294,10 @@ class ParticleFilter(Node):
         resampled_particles = temp_particles 
         
         # Make 15 random particles
-        rand_location_range = 2 # include random particles within 2 meters of the last known position
+        rand_location_range = 0.1 # include random particles within 2 meters of the last known position
         rand_heading_range = np.pi / 4 # 45 degree range in radians
 
-        last_pose = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose) # last know position
+        last_pose = self.transform_helper.convert_pose_to_xy_and_theta(self.robot_pose) # last know position
 
         rand_particles = [Particle(x=last_pose[0], y=last_pose[1], theta=last_pose[2], w=1.0/self.n_particles) for _ in range(n_rand_particles)] # create 15 particle object of the last known position
 
