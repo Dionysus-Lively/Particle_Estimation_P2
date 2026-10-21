@@ -84,7 +84,7 @@ class ParticleFilter(Node):
        self.scan_topic = "scan"        # the topic where we will get laser scans from
 
 
-       self.n_particles = 300          # the number of particles to use
+       self.n_particles = 600          # the number of particles to use
 
 
        self.d_thresh = 0.2             # the amount of linear movement before performing an update
@@ -201,24 +201,23 @@ class ParticleFilter(Node):
 
 
    def update_robot_pose(self):
-       """ Update the estimate of the robot's pose given the updated particles.
-           There are two logical methods for this:
-               (1): compute the mean pose
-               (2): compute the most likely pose (i.e. the mode of the distribution)
-       """
-       # first make sure that the particle weights are normalized
-       self.normalize_particles()
+        self.normalize_particles()
 
+        w = np.array([p.w for p in self.particle_cloud])
+        x = np.sum(w * np.array([p.x for p in self.particle_cloud]))
+        y = np.sum(w * np.array([p.y for p in self.particle_cloud]))
 
-       # TODO: assign the latest pose into self.robot_pose as a geometry_msgs.Pose object
-       # just to get started we will fix the robot's pose to always be at the origin
-       self.robot_pose = Pose()
-       if hasattr(self, 'odom_pose'):
-           self.transform_helper.fix_map_to_odom_transform(self.robot_pose,
-                                                           self.odom_pose)
-       else:
-           self.get_logger().warn("Can't set map->odom transform since no odom data received")
+        # average angles with sin/cos so that +179° and -179° don't average to 0°
+        th = np.array([p.theta for p in self.particle_cloud])
+        theta = math.atan2(np.sum(w * np.sin(th))   , np.sum(w * np.cos(th)))
 
+        self.robot_pose = Particle(x=x, y=y, theta=theta).as_pose()
+
+        if hasattr(self, 'odom_pose'):
+            self.transform_helper.fix_map_to_odom_transform(self.robot_pose, self.odom_pose)
+        else:
+            self.get_logger().warn("Can't set map->odom transform since no odom data received")
+    
 
    def update_particles_with_odom(self):
        """ Update the particles using the newly given odometry pose.
@@ -242,6 +241,19 @@ class ParticleFilter(Node):
 
 
        # TODO: modify particles using delta
+       old_th = old_odom_xy_theta[2]
+       fwd  =  math.cos(old_th) * delta[0] + math.sin(old_th) * delta[1]
+       angle = -math.sin(old_th) * delta[0] + math.cos(old_th) * delta[1]
+       dth  = math.atan2(math.sin(delta[2]), math.cos(delta[2]))   # wrap to [-pi, pi]
+
+
+       for p in self.particle_cloud:
+           # small noise so particles spread out like real odometry error
+
+           p.x += fwd * math.cos(p.theta) - angle * math.sin(p.theta)
+           p.y += fwd * math.sin(p.theta) + angle * math.cos(p.theta)
+           p.theta += dth
+       
 
 
    def resample_particles(self):
@@ -261,12 +273,14 @@ class ParticleFilter(Node):
         particle_weights = np.array([particle.w for particle in self.particle_cloud])
         particle_weights /= np.sum(particle_weights)
 
+        n_rand_particles = 150
+
         # Resample particles based on normalized weights
-        resampled_indices = np.random.choice(len(self.particle_cloud), size=len(self.particle_cloud)-15, p=particle_weights) # resamples 285 particles
-        resampled_particles = [self.particle_cloud[i] for i in resampled_indices] # extract samples particle objects
+        resampled_indices = np.random.choice(len(self.particle_cloud), size=len(self.particle_cloud)-n_rand_particles, p=particle_weights) # resamples 285 particles
+        resampled_particles = [self.particle_cloud[i] for i in resampled_indices] # extract sampled particle objects
 
         # Define noise ranges
-        pos_range = .2 # 20 cm radius around each particle
+        pos_range = .6 # 20 cm radius around each particle
         head_range = np.pi / 8 # 22.5 degree range in radians
 
         # Resampled positions and headings for weighted particles with noise
@@ -280,7 +294,6 @@ class ParticleFilter(Node):
         resampled_particles = temp_particles 
         
         # Make 15 random particles
-        n_rand_particles = 15
         rand_location_range = 2 # include random particles within 2 meters of the last known position
         rand_heading_range = np.pi / 4 # 45 degree range in radians
 
