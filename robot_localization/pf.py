@@ -333,7 +333,7 @@ class ParticleFilter(Node):
         resampled_particles = temp_particles
 
         # Spread for the 30 extra particles around the pose estimate
-        rand_location_range = 1        # ±0.1 m in x and in y
+        rand_location_range = 0.1        # ±0.1 m in x and in y
         rand_heading_range = np.pi / 4   # ±45 degrees
 
         last_pose = self.transform_helper.convert_pose_to_xy_and_theta(self.robot_pose)   # current pose estimate
