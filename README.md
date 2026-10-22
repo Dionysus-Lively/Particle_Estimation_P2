@@ -14,7 +14,8 @@ We used skeleton code for a central ParticleFilter class through which our entir
 **Initializing the Particle Cloud**  
 	Once in the main loop, we first collect an initial guess for the heading of our Neato and then initialize a particle cloud about that same Neato by adding uniformly random noise to both the heading and position of the initial particle. The range for the locations is a 2-meter by 2-meter square centered at the original guess. This 2-meter by 2-meter range covers a breadth of positions in which the Neato is highly likely to exist without diluting the density of particles below 15 particles per Neato or roughly 33cm by 33cm. Statistically, having 15 randomly generated particles per possible Neato location means there is a high likelihood of at least one particle representing a reasonably accurate location with a heading within a 20-degree range of the actual Neato heading. Since our initial cloud generates particles with guesses that are close enough, we are able to reduce the range of noise for resampling as we converge to increasingly accurate positions using the higher weighted particles. This initial particle cloud is used only once to localize the robot after the first time the movement threshold is reached; afterwards, new particle clouds are resampled over a smaller range using calculated particle weights.  
 	**Figure 1:** Example of initial particle cloud and guessed position  
-![][image1]
+
+![](images/initial_pcloud.png)
 
 **Ray tracing and weighting**  
 We decided to assign weights to each particle via ray tracing. What we essentially do is project the actual scan of the Neato onto each particle and see how closely the scans match up. To do this, first we store the data for every 10th index of the Neato’s laser scan. We chose to sample every 10th index in order to lower the compute time. Now that we have the data, we transform that data onto a particle’s location. If the nearest obstacle is within a certain threshold of the tip of a beam, we consider the beam as hitting an obstacle. If it isn’t within that threshold, we “march” the beam forward by the distance of the nearest obstacle and rerun the process until the beam registers a hit. Beams that go off of the map are discarded. Then we take the list of lengths of the valid beams and subtract the lengths of real beams from the lengths of the projected beams to get an error for each beam. To weight the beams, we use a Gaussian distribution.
@@ -24,10 +25,10 @@ Once the 600 particles each have corresponding weights, we resample 450 particle
 	  
 **Visualizing in Rviz2**  
 The map is represented by the black outlines and the light gray area, with the black lines representing obstacles and the light gray representing free space. The red lines represent the lidar data from the Neato, the large red arrow represents the best guess, and the small red arrows represent each particle.  
-**Fig 2:** visualization of particle filter in process of finding robot position  
-![][image2]  
-**Fig 3:** Visualization of particle filter after it has narrowed down the robot’s position  
-![][image3]
+**Figure 2:** visualization of particle filter in process of finding robot position  
+![](images/in_process_filter.png)
+**Figure 3:** Visualization of particle filter after it has narrowed down the robot’s position  
+![](images/converged_filter.png)
 
 **Link to Video:** [https\://youtu.be/WqUJgW8v6c4](https://youtu.be/WqUJgW8v6c4)
 
